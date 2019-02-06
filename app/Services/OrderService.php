@@ -1,9 +1,10 @@
 <?php
+
 namespace App\Services;
 
-use App\User;
 use App\Order;
 use App\OrderDetail;
+use App\User;
 use Illuminate\Support\Facades\DB;
 
 class OrderService
@@ -13,57 +14,53 @@ class OrderService
         if ($id == '') {
             // $data = Order::all();
             $data = Order
-                ::whereRaw("
-					orders.id in (select id from orders where input_user in (select id from users where api_token = ?)) or
-					orders.id in (select id from orders where reporter in (select id from users where api_token = ?)) or
-					orders.id in
-					(
-						select id from orders where respond_reporter is not null
-						and
-						(select flag from users where api_token = ?) = 2
-					)
-				")->setBindings([$api_token,$api_token,$api_token])
-                ->leftJoin('users as input', 'input.id', '=', 'orders.input_user')
-                ->leftJoin('users as report', 'report.id', '=', 'orders.reporter')
-                ->leftJoin('users as finance', 'finance.id', '=', 'orders.finance')
-                ->leftJoin('flags', 'flags.id', '=', 'orders.flag')
-                ->select('orders.*', 'input.username as input_username', 'report.username as report_username', 'finance.username as finance_username', 'flags.status')
-                ->get();
+                ::whereRaw('
+					orders.id in (select id from orders where input_user in (select id from users where api_token = ?))
+				')->setBindings([$api_token, $api_token, $api_token])
+                    ->leftJoin('users as input', 'input.id', '=', 'orders.input_user')
+                    ->leftJoin('users as report', 'report.id', '=', 'orders.reporter')
+                    ->leftJoin('users as finance', 'finance.id', '=', 'orders.finance')
+                    ->leftJoin('flags', 'flags.id', '=', 'orders.flag')
+                    ->select('orders.*', 'input.username as input_username', 'report.username as report_username', 'finance.username as finance_username', 'flags.status')
+                    ->get();
         } else {
             $data = Order
-                ::where("orders.id", $id)
-                ->join('order_details', 'order_details.id', '=', 'orders.id')
-                ->leftJoin('users as input', 'input.id', '=', 'orders.input_user')
-                ->leftJoin('users as report', 'report.id', '=', 'orders.reporter')
-                ->leftJoin('users as finance', 'finance.id', '=', 'orders.finance')
-                ->leftJoin('flags', 'flags.id', '=', 'orders.flag')
-                ->select('orders.*', 'order_details.*', 'input.username as input_username', 'report.username as reporter_username', 'finance.username as finance_username', 'flags.status')
-                ->get();
+                ::where('orders.id', $id)
+                    ->join('order_details', 'order_details.id', '=', 'orders.id')
+                    ->leftJoin('users as input', 'input.id', '=', 'orders.input_user')
+                    ->leftJoin('users as report', 'report.id', '=', 'orders.reporter')
+                    ->leftJoin('users as finance', 'finance.id', '=', 'orders.finance')
+                    ->leftJoin('flags', 'flags.id', '=', 'orders.flag')
+                    ->select('orders.*', 'order_details.*', 'input.username as input_username', 'report.username as reporter_username', 'finance.username as finance_username', 'flags.status')
+                    ->get();
         }
 
-        $array = array(
+        $array = [
             'success' => true,
-            'message' => $data
-          );
+            'message' => $data,
+        ];
+
         return $array;
     }
+
     public function store($product, $concierge_fee, $api_token, $duedate, $reporter)
     {
         DB::beginTransaction();
 
         $reporter = User::where('username', $reporter)->select('id')->first();
         if ($reporter == false) {
-            $array = array(
-               'success' => false,
-               'message' => 'reporter not found'
-            );
+            $array = [
+                'success' => false,
+                'message' => 'reporter not found',
+            ];
+
             return $array;
         }
 
         $data = User::where('api_token', $api_token)->first();
         $user_input = $data->id;
 
-        $data = new Order;
+        $data = new Order();
         $data->input_user = $user_input;
         $data->total = 0;
         $data->duedate = $duedate;
@@ -73,8 +70,8 @@ class OrderService
 
         $total = $concierge_fee;
 
-        foreach ($product as $key=>$value) {
-            $data = new OrderDetail;
+        foreach ($product as $key => $value) {
+            $data = new OrderDetail();
             $subtotal = str_replace(',', '', $value['qty']) * str_replace(',', '', $value['price_per_1_qty']);
             $total += $subtotal;
             $data->id = $id_order;
@@ -100,7 +97,7 @@ class OrderService
             }
             $data->save();
         }
-        $data = new OrderDetail;
+        $data = new OrderDetail();
         $data->id = $id_order;
         $data->name = 'concierge fee';
         $data->actual_price = $concierge_fee;
@@ -110,29 +107,32 @@ class OrderService
         $order->total = $total;
         $order->save();
 
-        $array = array(
-           'success' => true,
-           'message' => 'success'
-        );
+        $array = [
+            'success' => true,
+            'message' => 'success',
+        ];
         DB::commit();
+
         return $array;
     }
+
     public function update($product, $concierge_fee, $id_order, $duedate, $reporter)
     {
         DB::beginTransaction();
         $data = OrderDetail::destroy($id_order);
         $reporter = User::where('username', $reporter)->select('id')->first();
         if ($reporter == false) {
-            $array = array(
-               'success' => false,
-               'message' => 'reporter not found'
-            );
+            $array = [
+                'success' => false,
+                'message' => 'reporter not found',
+            ];
+
             return $array;
         }
 
         $total = $concierge_fee;
-        foreach ($product as $key=>$value) {
-            $data = new OrderDetail;
+        foreach ($product as $key => $value) {
+            $data = new OrderDetail();
             $subtotal = str_replace(',', '', $value['qty']) * str_replace(',', '', $value['price_per_1_qty']);
             $total += $subtotal;
             $data->id = $id_order;
@@ -158,7 +158,7 @@ class OrderService
             }
             $data->save();
         }
-        $data = new OrderDetail;
+        $data = new OrderDetail();
         $data->id = $id_order;
         $data->name = 'concierge fee';
         $data->actual_price = $concierge_fee;
@@ -170,55 +170,60 @@ class OrderService
         $order->reporter = $reporter->id;
         $order->save();
 
-        $array = array(
-           'success' => true,
-           'message' => 'success'
-        );
+        $array = [
+            'success' => true,
+            'message' => 'success',
+        ];
         DB::commit();
+
         return $array;
     }
+
     public function delete($id)
     {
         DB::beginTransaction();
         $data = Order::destroy($id);
         $data = OrderDetail::destroy($id);
-        $array = array(
-           'success' => true,
-           'message' => $data
-        );
+        $array = [
+            'success' => true,
+            'message' => $data,
+        ];
         DB::commit();
+
         return $array;
     }
+
     public function reporter($id_order, $flag)
     {
         DB::beginTransaction();
-        date_default_timezone_set("Asia/Bangkok");
+        date_default_timezone_set('Asia/Bangkok');
 
         $order = Order::find($id_order);
         $order->flag = $flag;
-        $order->respond_reporter = date("Y-m-d H:i:s", time());
+        $order->respond_reporter = date('Y-m-d H:i:s', time());
         $order->save();
 
-        $array = array(
-           'success' => true,
-           'message' => 'success'
-        );
+        $array = [
+            'success' => true,
+            'message' => 'success',
+        ];
         DB::commit();
+
         return $array;
     }
+
     public function update_finance($product, $concierge_fee, $id_order, $payment, $api_token)
     {
         DB::beginTransaction();
-        date_default_timezone_set("Asia/Bangkok");
+        date_default_timezone_set('Asia/Bangkok');
 
         $data = OrderDetail::destroy($id_order);
         $data = User::where('api_token', $api_token)->first();
         $finance = $data->id;
 
-
         $total = $concierge_fee;
-        foreach ($product as $key=>$value) {
-            $data = new OrderDetail;
+        foreach ($product as $key => $value) {
+            $data = new OrderDetail();
             $subtotal = str_replace(',', '', $value['actual_quantity']) * str_replace(',', '', $value['actual_per_price']);
             $total += $subtotal;
             $data->id = $id_order;
@@ -244,7 +249,7 @@ class OrderService
             }
             $data->save();
         }
-        $data = new OrderDetail;
+        $data = new OrderDetail();
         $data->id = $id_order;
         $data->name = 'concierge fee';
         $data->actual_price = $concierge_fee;
@@ -254,15 +259,16 @@ class OrderService
         $order->total = $total;
         $order->payment = $payment;
         $order->finance = $finance;
-        $order->respond_finance = date("Y-m-d H:i:s", time());
+        $order->respond_finance = date('Y-m-d H:i:s', time());
         $order->flag = 3;
         $order->save();
 
-        $array = array(
-           'success' => true,
-           'message' => 'success'
-        );
+        $array = [
+            'success' => true,
+            'message' => 'success',
+        ];
         DB::commit();
+
         return $array;
     }
 }
