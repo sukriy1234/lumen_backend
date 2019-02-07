@@ -1,7 +1,6 @@
 <?php
 
 $router->post('/login', 'UserController@login');
-$router->get('/coba', 'UserController@coba');
 $router->post('/logout', 'UserController@logout');
 
 $router->group(['middleware' => 'auth'], function () use ($router) {
