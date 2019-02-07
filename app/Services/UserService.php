@@ -10,26 +10,26 @@ class UserService
     {
         $data = User::where('username', $username)->first();
         if ($data) {
-            $data = User::where('password', $password)->first();
-            if ($data) {
+            $hasher = app()->make('hash');
+            if ($hasher->check($password, $data->password)) {
                 User::where('username', $username)
-                    ->where('password', $password)
+                    ->where('password', $data->password)
                     ->update(['api_token' => str_random(50)]);
 
                 $array = [
                     'success' => true,
-                    'message' => json_encode(User::where([['username', $username], ['password', $password]])->get()->toArray()),
+                    'message' => json_encode(User::where([['username', $username], ['password', $data->password]])->get()->toArray()),
                 ];
             } else {
                 $array = [
                     'success' => false,
-                    'message' => 'password Salah!',
+                    'message' => 'Wrong Password!',
                 ];
             }
         } else {
             $array = [
                 'success' => false,
-                'message' => 'Username tidak terdaftar!',
+                'message' => 'Username Not Found!',
             ];
         }
 
@@ -58,6 +58,6 @@ class UserService
 
     public function search()
     {
-        return $data = User::all('username as name');
+        return User::all('username as name');
     }
 }

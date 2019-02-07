@@ -1,21 +1,28 @@
 <?php
 
 $router->post('/login', 'UserController@login');
+$router->get('/coba', 'UserController@coba');
 $router->post('/logout', 'UserController@logout');
-$router->get('/user/search', 'UserController@search');
 
-//PRODUCT
-$router->post('/product', ['middleware' => 'auth', 'uses' => 'ProductController@view']);
-$router->post('/product/store', ['middleware' => 'auth', 'uses' => 'ProductController@store']);
-$router->post('/product/update', ['middleware' => 'auth', 'uses' => 'ProductController@update']);
-$router->post('/product/delete', ['middleware' => 'auth', 'uses' => 'ProductController@delete']);
-$router->get('/product/search', 'ProductController@search');
+$router->group(['middleware' => 'auth'], function () use ($router) {
+    $router->get('/user/search', 'UserController@search');
 
-//ORDER
-$router->post('/order', ['middleware' => 'auth', 'uses' => 'OrderController@view']);
-$router->post('/order/store', ['middleware' => 'auth', 'uses' => 'OrderController@store']);
-$router->post('/order/update', ['middleware' => 'auth', 'uses' => 'OrderController@update']);
-$router->post('/order/delete', ['middleware' => 'auth', 'uses' => 'OrderController@delete']);
+    //PRODUCT
+    $router->group(['prefix' => 'product'], function () use ($router) {
+        $router->post('', 'ProductController@view');
+        $router->post('store', 'ProductController@store');
+        $router->post('update', 'ProductController@update');
+        $router->post('delete', 'ProductController@delete');
+        $router->get('search', 'ProductController@search');
+    });
 
-$router->post('/order/reporter', ['middleware' => 'auth', 'uses' => 'OrderController@reporter']);
-$router->post('/order/update_finance', ['middleware' => 'auth', 'uses' => 'OrderController@update_finance']);
+    //ORDER
+    $router->group(['prefix' => 'order'], function () use ($router) {
+        $router->post('', 'OrderController@view');
+        $router->post('store', 'OrderController@store');
+        $router->post('update', 'OrderController@update');
+        $router->post('delete', 'OrderController@delete');
+        $router->post('reporter', 'OrderController@reporter');
+        $router->post('update_finance', 'OrderController@update_finance');
+    });
+});
