@@ -12,7 +12,7 @@ class OrderService
     public function view($api_token, $id)
     {
         try {
-            $data = '';
+            $data = null;
             if ($id == '') {
                 $data = Order
                  ::orwhereIn('orders.id', Order::whereIn('input_user', (User::where('api_token', $api_token)->select('id')->first()))->select('id')->get())
@@ -41,7 +41,6 @@ class OrderService
                 'message' => $data,
             ];
         } catch (\Illuminate\Database\QueryException $e) {
-            dd($e->getMessage());
             $array = [
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -122,7 +121,6 @@ class OrderService
             ];
             DB::commit();
         } catch (\Illuminate\Database\QueryException $e) {
-            dd($e->getMessage());
             $array = [
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -193,7 +191,6 @@ class OrderService
             ];
             DB::commit();
         } catch (\Illuminate\Database\QueryException $e) {
-            dd($e->getMessage());
             $array = [
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -215,7 +212,6 @@ class OrderService
             ];
             DB::commit();
         } catch (\Illuminate\Database\QueryException $e) {
-            dd($e->getMessage());
             $array = [
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -242,7 +238,6 @@ class OrderService
             ];
             DB::commit();
         } catch (\Illuminate\Database\QueryException $e) {
-            dd($e->getMessage());
             $array = [
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -309,14 +304,13 @@ class OrderService
                 'message' => 'success',
             ];
             DB::commit();
-
-            return $array;
         } catch (\Illuminate\Database\QueryException $e) {
-            dd($e->getMessage());
             $array = [
                 'success' => false,
                 'message' => $e->getMessage(),
             ];
         }
+
+        return $array;
     }
 }

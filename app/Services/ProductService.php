@@ -20,7 +20,6 @@ class ProductService
                 'message' => $data,
             ];
         } catch (\Illuminate\Database\QueryException $e) {
-            dd($e->getMessage());
             $array = [
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -54,7 +53,6 @@ class ProductService
                 ];
             }
         } catch (\Illuminate\Database\QueryException $e) {
-            dd($e->getMessage());
             $array = [
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -81,7 +79,6 @@ class ProductService
                 ];
             }
         } catch (\Illuminate\Database\QueryException $e) {
-            dd($e->getMessage());
             $array = [
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -112,7 +109,6 @@ class ProductService
                 ];
             }
         } catch (\Illuminate\Database\QueryException $e) {
-            dd($e->getMessage());
             $array = [
                 'success' => false,
                 'message' => $e->getMessage(),
