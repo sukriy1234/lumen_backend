@@ -27,12 +27,12 @@ class UserController extends MainController
         ]);
 
         if ($validator->fails()) {
-            $array = [
+            $arr = [
                 'success' => false,
                 'message' => $validator->errors()->first(),
             ];
 
-            return $array;
+            return $arr;
         }
 
         return $this->user_service->login($request->username, $request->password);
