@@ -12,11 +12,10 @@ class OrderService
     public function view($api_token, $id)
     {
         if ($id == '') {
-            // $data = Order::all();
             $data = Order
-                ::whereRaw('
-					orders.id in (select id from orders where input_user in (select id from users where api_token = ?))
-				')->setBindings([$api_token, $api_token, $api_token])
+                ::orwhereIn('orders.id', Order::whereIn('input_user', (User::where('api_token', $api_token)->select('id')->first()))->select('id')->get())
+                    ->orwhereIn('orders.id', Order::whereIn('reporter', (User::where('api_token', $api_token)->select('id')->first()))->select('id')->get())
+                    ->orwhereIn('orders.id', Order::whereNotNull('respond_reporter')->whereRaw('(select flag from users where api_token = ?)=2', [$api_token])->select('id')->get())
                     ->leftJoin('users as input', 'input.id', '=', 'orders.input_user')
                     ->leftJoin('users as report', 'report.id', '=', 'orders.reporter')
                     ->leftJoin('users as finance', 'finance.id', '=', 'orders.finance')
