@@ -23,7 +23,7 @@ class OrderService
                      ->orwhere('orders.reporter', $user->id)
                      ->orwhere(function ($query) use ($user) {
                          $query->whereNotNull('orders.respond_reporter');
-                         $query->where('2', $user->flag);
+                         $query->whereRaw('(select 2 = ?)', $user->flag);
                      })
                      ->leftJoin('users as input', 'input.id', '=', 'orders.input_user')
                      ->leftJoin('users as report', 'report.id', '=', 'orders.reporter')
@@ -31,8 +31,8 @@ class OrderService
                      ->leftJoin('flags', 'flags.id', '=', 'orders.flag')
                      ->select('orders.*', 'input.username as input_username', 'report.username as report_username', 'finance.username as finance_username', 'flags.status')
                      ->get();
-            }
-            $data = Order
+            } else {
+                $data = Order
                  ::where('orders.id', $id)
                      ->join('order_details', 'order_details.id', '=', 'orders.id')
                      ->leftJoin('users as input', 'input.id', '=', 'orders.input_user')
@@ -41,6 +41,7 @@ class OrderService
                      ->leftJoin('flags', 'flags.id', '=', 'orders.flag')
                      ->select('orders.*', 'order_details.*', 'input.username as input_username', 'report.username as reporter_username', 'finance.username as finance_username', 'flags.status')
                      ->get();
+            }
 
             $array = [
                 'success' => true,
