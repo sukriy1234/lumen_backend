@@ -18,19 +18,19 @@ class OrderService
             if ($id == '') {
                 $user = User::where('api_token', $api_token)->select('id', 'flag')->first();
 
-                $data = Order
-                 ::orwhere('orders.input_user', $user->id)
-                     ->orwhere('orders.reporter', $user->id)
-                     ->orwhere(function ($query) use ($user) {
-                         $query->whereNotNull('orders.respond_reporter');
-                         $query->whereRaw('(select 2 = ?)', $user->flag);
-                     })
-                     ->leftJoin('users as input', 'input.id', '=', 'orders.input_user')
-                     ->leftJoin('users as report', 'report.id', '=', 'orders.reporter')
-                     ->leftJoin('users as finance', 'finance.id', '=', 'orders.finance')
-                     ->leftJoin('flags', 'flags.id', '=', 'orders.flag')
-                     ->select('orders.*', 'input.username as input_username', 'report.username as report_username', 'finance.username as finance_username', 'flags.status')
-                     ->get();
+                $data = new Order();
+                if ($user->flag == 2) {
+                    $data = $data->whereNotNull('orders.respond_reporter');
+                }
+                $data = $data
+                    ->orwhere('orders.input_user', $user->id)
+                    ->orwhere('orders.reporter', $user->id)
+                    ->leftJoin('users as input', 'input.id', '=', 'orders.input_user')
+                    ->leftJoin('users as report', 'report.id', '=', 'orders.reporter')
+                    ->leftJoin('users as finance', 'finance.id', '=', 'orders.finance')
+                    ->leftJoin('flags', 'flags.id', '=', 'orders.flag')
+                    ->select('orders.*', 'input.username as input_username', 'report.username as report_username', 'finance.username as finance_username', 'flags.status')
+                    ->get();
             } else {
                 $data = Order
                  ::where('orders.id', $id)
