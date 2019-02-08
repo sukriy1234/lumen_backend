@@ -20,7 +20,7 @@ class OrderService
 
                 $data = new Order();
                 if ($user->flag == 2) {
-                    $data = $data->whereNotNull('orders.respond_reporter');
+                    $data = $data->orwhereNotNull('orders.respond_reporter');
                 }
                 $data = $data
                     ->orwhere('orders.input_user', $user->id)
