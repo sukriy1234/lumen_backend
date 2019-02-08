@@ -21,15 +21,20 @@ class OrderService
                 $data = Order
                  ::orwhere('orders.input_user', $user->id)
                      ->orwhere('orders.reporter', $user->id)
-                     ->orwhereRaw('(orders.respond_reporter is not null and (select 2 = ?))', $user->flag)
+                     ->orwhere(function ($query) use ($user) {
+                         $query->whereNotNull('orders.respond_reporter');
+                         $query->where('2', $user->flag);
+                     })
                      ->leftJoin('users as input', 'input.id', '=', 'orders.input_user')
                      ->leftJoin('users as report', 'report.id', '=', 'orders.reporter')
                      ->leftJoin('users as finance', 'finance.id', '=', 'orders.finance')
                      ->leftJoin('flags', 'flags.id', '=', 'orders.flag')
                      ->select('orders.*', 'input.username as input_username', 'report.username as report_username', 'finance.username as finance_username', 'flags.status')
-                     ->get();
-            } else {
-                $data = Order
+                     ->toSql();
+
+                return $data;
+            }
+            $data = Order
                  ::where('orders.id', $id)
                      ->join('order_details', 'order_details.id', '=', 'orders.id')
                      ->leftJoin('users as input', 'input.id', '=', 'orders.input_user')
@@ -38,7 +43,6 @@ class OrderService
                      ->leftJoin('flags', 'flags.id', '=', 'orders.flag')
                      ->select('orders.*', 'order_details.*', 'input.username as input_username', 'report.username as reporter_username', 'finance.username as finance_username', 'flags.status')
                      ->get();
-            }
 
             $array = [
                 'success' => true,
