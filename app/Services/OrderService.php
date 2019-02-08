@@ -11,13 +11,17 @@ class OrderService
 {
     public function view($api_token, $id)
     {
+        $array = [];
+
         try {
             $data = null;
             if ($id == '') {
+                $user = User::where('api_token', $api_token)->select('id', 'flag')->first();
+
                 $data = Order
-                 ::orwhereIn('orders.id', Order::whereIn('input_user', (User::where('api_token', $api_token)->select('id')->first()))->select('id')->get())
-                     ->orwhereIn('orders.id', Order::whereIn('reporter', (User::where('api_token', $api_token)->select('id')->first()))->select('id')->get())
-                     ->orwhereIn('orders.id', Order::whereNotNull('respond_reporter')->whereRaw('(select flag from users where api_token = ?)=2', [$api_token])->select('id')->get())
+                 ::orwhere('orders.input_user', $user->id)
+                     ->orwhere('orders.reporter', $user->id)
+                     ->orwhereRaw('(orders.respond_reporter is not null and (select 2 = ?))', $user->flag)
                      ->leftJoin('users as input', 'input.id', '=', 'orders.input_user')
                      ->leftJoin('users as report', 'report.id', '=', 'orders.reporter')
                      ->leftJoin('users as finance', 'finance.id', '=', 'orders.finance')
@@ -52,6 +56,8 @@ class OrderService
 
     public function store($product, $concierge_fee, $api_token, $duedate, $reporter)
     {
+        $array = [];
+
         try {
             DB::beginTransaction();
 
@@ -125,6 +131,7 @@ class OrderService
                 'success' => false,
                 'message' => $e->getMessage(),
             ];
+            DB::rollBack();
         }
 
         return $array;
@@ -132,6 +139,8 @@ class OrderService
 
     public function update($product, $concierge_fee, $id_order, $duedate, $reporter)
     {
+        $array = [];
+
         try {
             DB::beginTransaction();
             $data = OrderDetail::destroy($id_order);
@@ -195,6 +204,7 @@ class OrderService
                 'success' => false,
                 'message' => $e->getMessage(),
             ];
+            DB::rollBack();
         }
 
         return $array;
@@ -202,6 +212,8 @@ class OrderService
 
     public function delete($id)
     {
+        $array = [];
+
         try {
             DB::beginTransaction();
             $data = Order::destroy($id);
@@ -216,6 +228,7 @@ class OrderService
                 'success' => false,
                 'message' => $e->getMessage(),
             ];
+            DB::rollBack();
         }
 
         return $array;
@@ -223,8 +236,9 @@ class OrderService
 
     public function reporter($id_order, $flag)
     {
+        $array = [];
+
         try {
-            DB::beginTransaction();
             date_default_timezone_set('Asia/Bangkok');
 
             $order = Order::find($id_order);
@@ -236,7 +250,6 @@ class OrderService
                 'success' => true,
                 'message' => 'success',
             ];
-            DB::commit();
         } catch (\Illuminate\Database\QueryException $e) {
             $array = [
                 'success' => false,
@@ -249,6 +262,8 @@ class OrderService
 
     public function update_finance($product, $concierge_fee, $id_order, $payment, $api_token)
     {
+        $array = [];
+
         try {
             DB::beginTransaction();
             date_default_timezone_set('Asia/Bangkok');
@@ -309,6 +324,7 @@ class OrderService
                 'success' => false,
                 'message' => $e->getMessage(),
             ];
+            DB::rollBack();
         }
 
         return $array;

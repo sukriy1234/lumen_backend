@@ -8,6 +8,8 @@ class ProductService
 {
     public function view($id)
     {
+        $array = [];
+
         try {
             $data = null;
             if ($id == '') {
@@ -36,6 +38,8 @@ class ProductService
 
     public function update($id, $name, $link)
     {
+        $array = [];
+
         try {
             $data = Product::where('name', $name)->where('id', '<>', $id)->count();
             if ($data == 0) {
@@ -64,6 +68,8 @@ class ProductService
 
     public function delete($id)
     {
+        $array = [];
+
         try {
             $data = Product::where('id', $id)->first();
             if ($data) {
@@ -90,6 +96,8 @@ class ProductService
 
     public function store($name, $link)
     {
+        $array = [];
+
         try {
             $data = Product::where('name', $name)->count();
             if ($data == 0) {

@@ -8,6 +8,7 @@ class UserService
 {
     public function login($username, $password)
     {
+        $array = [];
         $data = User::where('username', $username)->first();
         if ($data) {
             $hasher = app()->make('hash');
@@ -38,6 +39,7 @@ class UserService
 
     public function logout($api_token)
     {
+        $array = [];
         $user = User::where('api_token', $api_token)->first();
         if ($user) {
             User::where('api_token', $api_token)
