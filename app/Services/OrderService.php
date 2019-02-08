@@ -30,9 +30,7 @@ class OrderService
                      ->leftJoin('users as finance', 'finance.id', '=', 'orders.finance')
                      ->leftJoin('flags', 'flags.id', '=', 'orders.flag')
                      ->select('orders.*', 'input.username as input_username', 'report.username as report_username', 'finance.username as finance_username', 'flags.status')
-                     ->toSql();
-
-                return $data;
+                     ->get();
             }
             $data = Order
                  ::where('orders.id', $id)
